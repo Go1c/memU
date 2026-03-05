@@ -50,9 +50,19 @@ def get_llm_profiles() -> dict:
     return {"default": profile, "embedding": profile}
 
 
+def normalize_dsn(dsn: str) -> str:
+    """Convert postgresql:// to postgresql+psycopg:// for psycopg v3 driver."""
+    if dsn.startswith("postgres://"):
+        dsn = dsn.replace("postgres://", "postgresql://", 1)
+    if dsn.startswith("postgresql://"):
+        dsn = dsn.replace("postgresql://", "postgresql+psycopg://", 1)
+    return dsn
+
+
 def get_database_config() -> DatabaseConfig:
     dsn = os.getenv("DATABASE_URL")
     if dsn:
+        dsn = normalize_dsn(dsn)
         return DatabaseConfig(
             metadata_store=MetadataStoreConfig(
                 provider="postgres",
